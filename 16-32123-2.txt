@@ -1,0 +1,101 @@
+
+1..............................................................
+Create or replace procedure pro(emp_no emp.empno%TYPE)
+is
+e_name emp.ename%TYPE;
+e_sal emp.sal%TYPE;
+Begin
+select ename,sal into e_name,e_sal from emp where empno=emp_no;
+dbms_output.put_line(emp_no||' '||e_name||' '||e_sal);
+End;
+
+Declare
+emp_no emp.empno%TYPE;
+counter number:=0;
+cursor c1
+is
+select * from emp order by sal desc;
+Begin
+   for i in c1 loop
+      pro(i.empno);
+      counter:=counter+1;
+      if(counter>=5)
+      then
+      EXIT;
+      END if;
+   END LOOP; 
+END
+
+
+
+
+
+
+
+
+2............................................................
+create or replace procedure cal(n in emp.sal%type)
+is
+   cursor c1 is select sal from emp;
+   s emp.sal%type;
+   esal emp.sal%type;
+   s1 emp.sal%type;
+begin
+   s:=0;
+   s1:=n;
+   for i in c1 loop
+      s1:=s1-1;
+      if s1=0 or s1<0 then
+         esal:=0;
+      else
+         s:=s+i.sal;
+      end if;
+   end loop;
+   dbms_output.put_line(s);
+end;
+
+declare
+begin
+   cal(5);
+end;
+
+3...................................................
+
+
+
+create or replace procedure update_sal(emp_no emp.empno%type,salary emp.sal%type) is
+avg_sal emp.sal%type;
+emp_sal emp.sal%type;
+begin
+select avg(sal) into avg_sal from emp;
+select sal into emp_sal from emp where empno=emp_no;
+if (emp_sal<avg_sal) then
+update emp set sal=salary where empno=emp_no;
+else
+dbms_output.put_line('Update failed!');
+end if;
+end;
+
+declare
+n emp.empno%type :=:Enter_emp_no_to_update_sal;
+v emp.sal%type :=:Enter_New_sal;
+begin
+update_sal(n,v);
+end;
+
+
+
+
+
+4...........................................................
+create or replace trigger salary_change_monitoring
+before update on emp
+for each row
+begin
+if ((:new.sal-:old.sal)>(:old.sal*.2)) then
+raise_application_error(-20201,'violation detected');
+end if;
+end;
+
+update emp set sal=850 where empno=7369;
+
